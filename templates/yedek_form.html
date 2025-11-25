@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<h4>{{ "Yedek Ekle" if mode == "add" else "Yedek Düzenle" }}</h4>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Referans ID</label>
+        <input type="text" name="Referans ID" class="form-control"
+               value="{{ record['Referans ID'] if record else '' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Açıklama</label>
+        <input type="text" name="Açıklama" class="form-control"
+               value="{{ record['Açıklama'] if record else '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tamirde mi</label>
+        <select name="Tamirde mi" class="form-select">
+          {% set current = record['Tamirde mi'] if record else 'Hayır' %}
+          <option value="Evet" {{ "selected" if current == "Evet" }}>Evet</option>
+          <option value="Hayır" {{ "selected" if current == "Hayır" }}>Hayır</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Bakıma Gönderilme</label>
+        <input type="text" name="Bakıma Gönderilme" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="{% if record %}{{ record['Bakıma Gönderilme'] }}{% else %}{{ today }}{% endif %}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Geri Dönme</label>
+        <input type="text" name="Geri Dönme" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="{% if record %}{{ record['Geri Dönme'] }}{% else %}{{ today }}{% endif %}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Söküldüğü Makine</label>
+        <input type="text" name="Söküldüğü Makine" class="form-control"
+               value="{{ record['Söküldüğü Makine'] if record else '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Sökülme Tarihi</label>
+        <input type="text" name="Sökülme Tarihi" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="{% if record %}{{ record['Sökülme Tarihi'] }}{% else %}{{ today }}{% endif %}">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+      <a href="{{ url_for('yedeks') }}" class="btn btn-secondary">İptal</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
