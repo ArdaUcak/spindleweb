@@ -384,12 +384,32 @@ if __name__ == "__main__":
         except OSError:
             return None
 
+    def _candidate_ips() -> list[str]:
+        addresses: set[str] = set()
+        try:
+            infos = socket.getaddrinfo(socket.gethostname(), None, family=socket.AF_INET)
+            for info in infos:
+                ip = info[4][0]
+                if not ip.startswith("127."):
+                    addresses.add(ip)
+        except OSError:
+            pass
+        lan = _lan_ip()
+        if lan:
+            addresses.add(lan)
+        return sorted(addresses)
+
     lan_ip = _lan_ip()
+    private_ips = _candidate_ips()
     print(f"Local access: http://127.0.0.1:{port}/login")
     if lan_ip:
         print(f"LAN access:   http://{lan_ip}:{port}/login")
     else:
         print("LAN access:   Use this machine's LAN IP (ipconfig/ifconfig).")
+    if private_ips:
+        print("Detected IPv4 addresses (use the one on your Wi‑Fi/Ethernet):")
+        for ip in private_ips:
+            print(f" - http://{ip}:{port}/login")
     print("If phones show 127.0.0.1 refused, use the LAN IP above instead.")
 
     app.run(host=host, port=port, debug=True)
