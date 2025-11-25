@@ -1,5 +1,6 @@
 import csv
 import os
+import socket
 from datetime import datetime
 from functools import wraps
 
@@ -372,4 +373,23 @@ def export():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    host = os.environ.get("APP_HOST", "0.0.0.0")
+    port = int(os.environ.get("APP_PORT", 5000))
+
+    def _lan_ip() -> str | None:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                return s.getsockname()[0]
+        except OSError:
+            return None
+
+    lan_ip = _lan_ip()
+    print(f"Local access: http://127.0.0.1:{port}/login")
+    if lan_ip:
+        print(f"LAN access:   http://{lan_ip}:{port}/login")
+    else:
+        print("LAN access:   Use this machine's LAN IP (ipconfig/ifconfig).")
+    print("If phones show 127.0.0.1 refused, use the LAN IP above instead.")
+
+    app.run(host=host, port=port, debug=True)
