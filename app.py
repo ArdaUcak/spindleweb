@@ -20,6 +20,17 @@ PASSWORD = "MAXIME"
 DATE_FORMAT = "%d-%m-%Y"
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# A minimal baked-in set of templates so the app can recover even if the
+# templates directory was not copied when the project was moved/extracted.
+DEFAULT_TEMPLATES: dict[str, str] = {
+    "base.html": """<!doctype html>\n<html lang=\"tr\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>{{ app_title }}</title>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <!-- Bootstrap CDN -->\n  <link\n    href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css\"\n    rel=\"stylesheet\">\n</head>\n<body class=\"bg-light\">\n\n<nav class=\"navbar navbar-expand-lg navbar-dark bg-primary mb-4\">\n  <div class=\"container-fluid\">\n    <a class=\"navbar-brand\" href=\"{{ url_for('spindles') }}\">STS</a>\n    {% if session.get('logged_in') %}\n    <div>\n      <a href=\"{{ url_for('spindles') }}\" class=\"btn btn-outline-light btn-sm me-2\">Spindle</a>\n      <a href=\"{{ url_for('yedeks') }}\" class=\"btn btn-outline-light btn-sm me-2\">Yedek</a>\n      <a href=\"{{ url_for('export') }}\" class=\"btn btn-outline-light btn-sm me-2\">Excel'e Aktar</a>\n      <a href=\"{{ url_for('logout') }}\" class=\"btn btn-light btn-sm text-primary\">Çıkış</a>\n    </div>\n    {% endif %}\n  </div>\n</nav>\n\n<div class=\"container mb-4\">\n  {% with messages = get_flashed_messages(with_categories=true) %}\n    {% if messages %}\n      {% for category, msg in messages %}\n        <div class=\"alert alert-{{ category }} alert-dismissible fade show\" role=\"alert\">\n          {{ msg }}\n          <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\"></button>\n        </div>\n      {% endfor %}\n    {% endif %}\n  {% endwith %}\n\n  {% block content %}{% endblock %}\n</div>\n\n<script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js\"></script>\n</body>\n</html>\n""",
+    "login.html": """{% extends \"base.html\" %}\n{% block content %}\n<div class=\"row justify-content-center\">\n  <div class=\"col-md-4\">\n    <div class=\"card shadow-sm\">\n      <div class=\"card-header text-center\">\n        <h5 class=\"mb-0\">Giriş Ekranı</h5>\n      </div>\n      <div class=\"card-body\">\n        <form method=\"post\">\n          <div class=\"mb-3\">\n            <label class=\"form-label\">Kullanıcı Adı</label>\n            <input type=\"text\" name=\"username\" class=\"form-control\" autofocus>\n          </div>\n          <div class=\"mb-3\">\n            <label class=\"form-label\">Şifre</label>\n            <input type=\"password\" name=\"password\" class=\"form-control\">\n          </div>\n          <button class=\"btn btn-primary w-100\" type=\"submit\">Giriş</button>\n        </form>\n      </div>\n      <div class=\"card-footer text-end small text-muted\">\n        Created by: Arda UÇAK\n      </div>\n    </div>\n  </div>\n</div>\n{% endblock %}\n""",
+    "spindles.html": """{% extends \"base.html\" %}\n{% block content %}\n<div class=\"d-flex justify-content-between align-items-center mb-3\">\n  <h4>Spindle Takip Sistemi</h4>\n  <a href=\"{{ url_for('spindle_add') }}\" class=\"btn btn-success\">Spindle Ekle</a>\n</div>\n\n<form class=\"row gy-2 gx-2 align-items-center mb-3\" method=\"get\">\n  <div class=\"col-auto\">\n    <label class=\"col-form-label\">Referans ID ile Ara:</label>\n  </div>\n  <div class=\"col-auto\">\n    <input type=\"text\" name=\"q\" class=\"form-control\" value=\"{{ query }}\">\n  </div>\n  <div class=\"col-auto\">\n    <button class=\"btn btn-primary\" type=\"submit\">Ara</button>\n    <a href=\"{{ url_for('spindles') }}\" class=\"btn btn-secondary\">Temizle</a>\n  </div>\n</form>\n\n<div class=\"card shadow-sm\">\n  <div class=\"card-body p-0\">\n    <div class=\"table-responsive\">\n      <table class=\"table table-striped table-hover mb-0\">\n        <thead class=\"table-light\">\n          <tr>\n            <th>ID</th>\n            <th>Referans ID</th>\n            <th>Çalışma Saati</th>\n            <th>Takılı Olduğu Makine</th>\n            <th>Makinaya Takıldığı Tarih</th>\n            <th>Son Güncelleme</th>\n            <th class=\"text-end\">İşlemler</th>\n          </tr>\n        </thead>\n        <tbody>\n          {% for row in rows %}\n          <tr>\n            <td>{{ row[\"id\"] }}</td>\n            <td>{{ row[\"Referans ID\"] }}</td>\n            <td>{{ row[\"Çalışma Saati\"] }}</td>\n            <td>{{ row[\"Takılı Olduğu Makine\"] }}</td>\n            <td>{{ row[\"Makinaya Takıldığı Tarih\"] }}</td>\n            <td>{{ row[\"Son Güncelleme\"] }}</td>\n            <td class=\"text-end\">\n              <a href=\"{{ url_for('spindle_edit', record_id=row['id']) }}\" class=\"btn btn-sm btn-outline-primary\">Düzenle</a>\n              <form action=\"{{ url_for('spindle_delete', record_id=row['id']) }}\" method=\"post\" style=\"display:inline-block\" onsubmit=\"return confirm('Silmek istediğinize emin misiniz?');\">\n                <button class=\"btn btn-sm btn-outline-danger\" type=\"submit\">Sil</button>\n              </form>\n            </td>\n          </tr>\n          {% else %}\n          <tr>\n            <td colspan=\"7\" class=\"text-center py-3\">Kayıt bulunamadı.</td>\n          </tr>\n          {% endfor %}\n        </tbody>\n      </table>\n    </div>\n  </div>\n</div>\n{% endblock %}\n""",
+    "spindle_form.html": """{% extends \"base.html\" %}\n{% block content %}\n<h4>{{ \"Spindle Ekle\" if mode == \"add\" else \"Spindle Düzenle\" }}</h4>\n\n<div class=\"card shadow-sm mt-3\">\n  <div class=\"card-body\">\n    <form method=\"post\">\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Referans ID</label>\n        <input type=\"text\" name=\"Referans ID\" class=\"form-control\"\n               value=\"{{ record['Referans ID'] if record else '' }}\" required>\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Çalışma Saati</label>\n        <input type=\"text\" name=\"Çalışma Saati\" class=\"form-control\"\n               value=\"{{ record['Çalışma Saati'] if record else '' }}\">\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Takılı Olduğu Makine</label>\n        <input type=\"text\" name=\"Takılı Olduğu Makine\" class=\"form-control\"\n               value=\"{{ record['Takılı Olduğu Makine'] if record else '' }}\">\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Makinaya Takıldığı Tarih</label>\n        <input type=\"text\" name=\"Makinaya Takıldığı Tarih\" class=\"form-control\"\n               placeholder=\"gg-aa-yyyy\"\n               value=\"{% if record %}{{ record['Makinaya Takıldığı Tarih'] }}{% else %}{{ today }}{% endif %}\">\n      </div>\n\n      <button type=\"submit\" class=\"btn btn-primary\">Kaydet</button>\n      <a href=\"{{ url_for('spindles') }}\" class=\"btn btn-secondary\">İptal</a>\n    </form>\n  </div>\n</div>\n{% endblock %}\n""",
+    "yedeks.html": """{% extends \"base.html\" %}\n{% block content %}\n<div class=\"d-flex justify-content-between align-items-center mb-3\">\n  <h4>Yedek Takip Sistemi</h4>\n  <a href=\"{{ url_for('yedek_add') }}\" class=\"btn btn-success\">Yedek Ekle</a>\n</div>\n\n<form class=\"row gy-2 gx-2 align-items-center mb-3\" method=\"get\">\n  <div class=\"col-auto\">\n    <label class=\"col-form-label\">Referans ID ile Ara:</label>\n  </div>\n  <div class=\"col-auto\">\n    <input type=\"text\" name=\"q\" class=\"form-control\" value=\"{{ query }}\">\n  </div>\n  <div class=\"col-auto\">\n    <button class=\"btn btn-primary\" type=\"submit\">Ara</button>\n    <a href=\"{{ url_for('yedeks') }}\" class=\"btn btn-secondary\">Temizle</a>\n  </div>\n</form>\n\n<div class=\"card shadow-sm\">\n  <div class=\"card-body p-0\">\n    <div class=\"table-responsive\">\n      <table class=\"table table-striped table-hover mb-0\">\n        <thead class=\"table-light\">\n          <tr>\n            <th>ID</th>\n            <th>Referans ID</th>\n            <th>Açıklama</th>\n            <th>Tamirde mi</th>\n            <th>Bakıma Gönderilme</th>\n            <th>Geri Dönme</th>\n            <th>Söküldüğü Makine</th>\n            <th>Sökülme Tarihi</th>\n            <th>Son Güncelleme</th>\n            <th class=\"text-end\">İşlemler</th>\n          </tr>\n        </thead>\n        <tbody>\n        {% for row in rows %}\n          <tr>\n            <td>{{ row[\"id\"] }}</td>\n            <td>{{ row[\"Referans ID\"] }}</td>\n            <td>{{ row[\"Açıklama\"] }}</td>\n            <td>{{ row[\"Tamirde mi\"] }}</td>\n            <td>{{ row[\"Bakıma Gönderilme\"] }}</td>\n            <td>{{ row[\"Geri Dönme\"] }}</td>\n            <td>{{ row[\"Söküldüğü Makine\"] }}</td>\n            <td>{{ row[\"Sökülme Tarihi\"] }}</td>\n            <td>{{ row[\"Son Güncelleme\"] }}</td>\n            <td class=\"text-end\">\n              <a href=\"{{ url_for('yedek_edit', record_id=row['id']) }}\" class=\"btn btn-sm btn-outline-primary\">Düzenle</a>\n              <form action=\"{{ url_for('yedek_delete', record_id=row['id']) }}\" method=\"post\" style=\"display:inline-block\" onsubmit=\"return confirm('Silmek istediğinize emin misiniz?');\">\n                <button class=\"btn btn-sm btn-outline-danger\" type=\"submit\">Sil</button>\n              </form>\n            </td>\n          </tr>\n        {% else %}\n          <tr>\n            <td colspan=\"10\" class=\"text-center py-3\">Kayıt bulunamadı.</td>\n          </tr>\n        {% endfor %}\n        </tbody>\n      </table>\n    </div>\n  </div>\n</div>\n{% endblock %}\n""",
+    "yedek_form.html": """{% extends \"base.html\" %}\n{% block content %}\n<h4>{{ \"Yedek Ekle\" if mode == \"add\" else \"Yedek Düzenle\" }}</h4>\n\n<div class=\"card shadow-sm mt-3\">\n  <div class=\"card-body\">\n    <form method=\"post\">\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Referans ID</label>\n        <input type=\"text\" name=\"Referans ID\" class=\"form-control\"\n               value=\"{{ record['Referans ID'] if record else '' }}\" required>\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Açıklama</label>\n        <input type=\"text\" name=\"Açıklama\" class=\"form-control\"\n               value=\"{{ record['Açıklama'] if record else '' }}\">\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Tamirde mi</label>\n        <select name=\"Tamirde mi\" class=\"form-select\">\n          {% set current = record['Tamirde mi'] if record else 'Hayır' %}\n          <option value=\"Evet\" {{ \"selected\" if current == \"Evet\" }}>Evet</option>\n          <option value=\"Hayır\" {{ \"selected\" if current == \"Hayır\" }}>Hayır</option>\n        </select>\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Bakıma Gönderilme</label>\n        <input type=\"text\" name=\"Bakıma Gönderilme\" class=\"form-control\"\n               placeholder=\"gg-aa-yyyy\"\n               value=\"{% if record %}{{ record['Bakıma Gönderilme'] }}{% else %}{{ today }}{% endif %}\">\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Geri Dönme</label>\n        <input type=\"text\" name=\"Geri Dönme\" class=\"form-control\"\n               placeholder=\"gg-aa-yyyy\"\n               value=\"{% if record %}{{ record['Geri Dönme'] }}{% else %}{{ today }}{% endif %}\">\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Söküldüğü Makine</label>\n        <input type=\"text\" name=\"Söküldüğü Makine\" class=\"form-control\"\n               value=\"{{ record['Söküldüğü Makine'] if record else '' }}\">\n      </div>\n\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Sökülme Tarihi</label>\n        <input type=\"text\" name=\"Sökülme Tarihi\" class=\"form-control\"\n               placeholder=\"gg-aa-yyyy\"\n               value=\"{% if record %}{{ record['Sökülme Tarihi'] }}{% else %}{{ today }}{% endif %}\">\n      </div>\n\n      <button type=\"submit\" class=\"btn btn-primary\">Kaydet</button>\n      <a href=\"{{ url_for('yedeks') }}\" class=\"btn btn-secondary\">İptal</a>\n    </form>\n  </div>\n</div>\n{% endblock %}\n""",
+}
+
 
 def resource_path(filename: str) -> str:
     return os.path.join(BASE_DIR, filename)
@@ -33,14 +44,23 @@ app = Flask(
 app.secret_key = os.environ.get("SECRET_KEY", "change_this_to_random_secret")
 
 
-def ensure_template_exists(template_name: str) -> None:
-    """Provide a clearer error if a template is missing on disk."""
+def ensure_template_exists(template_name: str) -> str:
+    """Ensure a template file is present; recreate it from defaults if needed."""
+    os.makedirs(resource_path("templates"), exist_ok=True)
     template_path = resource_path(os.path.join("templates", template_name))
+
     if not os.path.exists(template_path):
-        raise FileNotFoundError(
-            f"Beklenen şablon bulunamadı: {template_path}.\n"
-            "Proje klasörünü eksiksiz kopyaladığınızdan ve 'templates' dizinini içerdiğinden emin olun."
-        )
+        default_content = DEFAULT_TEMPLATES.get(template_name)
+        if default_content is None:
+            raise FileNotFoundError(
+                f"Beklenen şablon bulunamadı: {template_path}.\n"
+                "Proje klasörünü eksiksiz kopyaladığınızdan ve 'templates' dizinini içerdiğinden emin olun."
+            )
+
+        with open(template_path, "w", encoding="utf-8") as file:
+            file.write(default_content)
+
+    return template_path
 
 
 class DataManager:
@@ -399,6 +419,7 @@ def export():
 
 if __name__ == "__main__":
     # Ensure required templates exist when the server starts so users get a clear error
+    missing_created = []
     for required_template in [
         "login.html",
         "spindles.html",
@@ -407,11 +428,21 @@ if __name__ == "__main__":
         "yedek_form.html",
         "base.html",
     ]:
-        ensure_template_exists(required_template)
+        template_path = ensure_template_exists(required_template)
+        if os.path.exists(template_path) and required_template in DEFAULT_TEMPLATES:
+            # If the file was freshly created, record it for the startup log.
+            # We check file size to see whether it already existed with content.
+            if os.path.getsize(template_path) == len(DEFAULT_TEMPLATES[required_template].encode("utf-8")):
+                missing_created.append(template_path)
 
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", 5000))
     print(f"\n{APP_TITLE} çalışıyor.")
     print(f"Local:  http://localhost:{port}")
+    if missing_created:
+        print("\nAşağıdaki şablonlar eksikti, varsayılan içerikle oluşturuldu:")
+        for created in missing_created:
+            print(f" - {created}")
+
     print("LAN erişimi için bu makinenin IP'sini kullanın (örn. ipconfig > IPv4).")
     app.run(host=host, port=port, debug=True)
