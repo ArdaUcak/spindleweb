@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h4>{{ "Spindle Ekle" if mode == "add" else "Spindle Düzenle" }}</h4>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Referans ID</label>
+        <input type="text" name="Referans ID" class="form-control"
+               value="{{ record['Referans ID'] if record else '' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Çalışma Saati</label>
+        <input type="text" name="Çalışma Saati" class="form-control"
+               value="{{ record['Çalışma Saati'] if record else '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Takılı Olduğu Makine</label>
+        <input type="text" name="Takılı Olduğu Makine" class="form-control"
+               value="{{ record['Takılı Olduğu Makine'] if record else '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Makinaya Takıldığı Tarih</label>
+        <input type="text" name="Makinaya Takıldığı Tarih" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="{% if record %}{{ record['Makinaya Takıldığı Tarih'] }}{% else %}{{ today }}{% endif %}">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+      <a href="{{ url_for('spindles') }}" class="btn btn-secondary">İptal</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
