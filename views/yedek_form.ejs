@@ -1,0 +1,58 @@
+<h4><%= mode === 'add' ? 'Yedek Ekle' : 'Yedek Düzenle' %></h4>
+
+<div class="card shadow-sm mt-3">
+  <div class="card-body">
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Referans ID</label>
+        <input type="text" name="Referans ID" class="form-control"
+               value="<%= record ? record['Referans ID'] : '' %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Açıklama</label>
+        <input type="text" name="Açıklama" class="form-control"
+               value="<%= record ? record['Açıklama'] : '' %>">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tamirde mi</label>
+        <% const current = record ? record['Tamirde mi'] : 'Hayır'; %>
+        <select name="Tamirde mi" class="form-select">
+          <option value="Evet" <%= current === 'Evet' ? 'selected' : '' %>>Evet</option>
+          <option value="Hayır" <%= current === 'Hayır' ? 'selected' : '' %>>Hayır</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Bakıma Gönderilme</label>
+        <input type="text" name="Bakıma Gönderilme" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="<%= record ? record['Bakıma Gönderilme'] : today %>">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Geri Dönme</label>
+        <input type="text" name="Geri Dönme" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="<%= record ? record['Geri Dönme'] : today %>">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Söküldüğü Makine</label>
+        <input type="text" name="Söküldüğü Makine" class="form-control"
+               value="<%= record ? record['Söküldüğü Makine'] : '' %>">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Sökülme Tarihi</label>
+        <input type="text" name="Sökülme Tarihi" class="form-control"
+               placeholder="gg-aa-yyyy"
+               value="<%= record ? record['Sökülme Tarihi'] : today %>">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+      <a href="/yedeks" class="btn btn-secondary">İptal</a>
+    </form>
+  </div>
+</div>
