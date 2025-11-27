@@ -21,16 +21,16 @@ DATE_FORMAT = "%d-%m-%Y"
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
+def resource_path(filename: str) -> str:
+    return os.path.join(BASE_DIR, filename)
+
+
 app = Flask(
     __name__,
     template_folder=resource_path("templates"),
     static_folder=resource_path("static"),
 )
 app.secret_key = os.environ.get("SECRET_KEY", "change_this_to_random_secret")
-
-
-def resource_path(filename: str) -> str:
-    return os.path.join(BASE_DIR, filename)
 
 
 def ensure_template_exists(template_name: str) -> None:
