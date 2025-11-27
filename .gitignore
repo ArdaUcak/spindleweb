@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log*
+.DS_Store
+.env
+spindle_data.csv
+yedek_data.csv
+takip_export.csv
