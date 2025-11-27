@@ -12,6 +12,8 @@ LAN üzerinden tarayıcıdan erişilebilen, CSV tabanlı spindle ve yedek takip 
    ```bash
    python app.py
    ```
+   > Not: `templates/` klasörü aynı dizinde olmalı; repo klasöründen çalıştırdığınızdan emin olun.
+
 4) Konsolda yerel URL'yi görürsünüz (`http://localhost:5000`). Aynı ağdaki başka cihazdan erişmek için bu makinenin IPv4 adresini kullanın:
    ```
    http://<LAN_IP>:5000/login

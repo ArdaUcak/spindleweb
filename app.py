@@ -21,12 +21,26 @@ DATE_FORMAT = "%d-%m-%Y"
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=resource_path("templates"),
+    static_folder=resource_path("static"),
+)
 app.secret_key = os.environ.get("SECRET_KEY", "change_this_to_random_secret")
 
 
 def resource_path(filename: str) -> str:
     return os.path.join(BASE_DIR, filename)
+
+
+def ensure_template_exists(template_name: str) -> None:
+    """Provide a clearer error if a template is missing on disk."""
+    template_path = resource_path(os.path.join("templates", template_name))
+    if not os.path.exists(template_path):
+        raise FileNotFoundError(
+            f"Beklenen şablon bulunamadı: {template_path}.\n"
+            "Proje klasörünü eksiksiz kopyaladığınızdan ve 'templates' dizinini içerdiğinden emin olun."
+        )
 
 
 class DataManager:
@@ -384,6 +398,17 @@ def export():
 
 
 if __name__ == "__main__":
+    # Ensure required templates exist when the server starts so users get a clear error
+    for required_template in [
+        "login.html",
+        "spindles.html",
+        "spindle_form.html",
+        "yedeks.html",
+        "yedek_form.html",
+        "base.html",
+    ]:
+        ensure_template_exists(required_template)
+
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", 5000))
     print(f"\n{APP_TITLE} çalışıyor.")
