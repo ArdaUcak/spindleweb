@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+spindle_data.csv
+yedek_data.csv
+takip_export.csv
